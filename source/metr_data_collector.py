@@ -31,6 +31,7 @@ def verify_or_create_output(file_path, data):
     """
     curr_time = time.asctime(time.localtime(time.time()))
     try:
+        # if file exists the 'x' argument throws a FileExists error
         with open(file_path, 'x') as file:
             msg = ("%s ### Session initiated ###\n"
                    " Output path: %s\n"
