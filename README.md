@@ -28,7 +28,7 @@ The config file contains a number of  entries.
 
 ---
 >metr_data_collector --help
-
+```
 Usage: metr_data_collector [OPTIONS] COMMAND [ARGS]...
 
   CLI tool that reads a config file and collects data from a specified url
@@ -41,10 +41,11 @@ Options:
 
 Commands:  
   collect-data  Fetches data from a location specified in a config file and...
+```
 ---
 
 >metr_data_collector collect-data --help 
-
+```
 Usage: metr_data_collector collect-data [OPTIONS]
 
   Fetches data from a location specified in a config file and outputs it in
@@ -58,4 +59,5 @@ Options:
   -C, --config_path TEXT  path to local config file  [required]  
   -O, --output_path TEXT  path to the output file  [required]  
   --help                  Show this message and exit.
+```
 ---
