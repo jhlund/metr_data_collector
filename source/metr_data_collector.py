@@ -51,7 +51,7 @@ def get_data(url_path):
     try:
         with urllib.request.urlopen(url_path) as _url:
             _string = _url.read().decode()
-            raise urllib.error.HTTPError(url=url_path, code=500, msg="generated error", hdrs=None, fp=None)
+            # raise urllib.error.HTTPError(url=url_path, code=500, msg="generated error", hdrs=None, fp=None)
     except ValueError as errv:
         _string = "ValueError caught: %s" % errv
     except urllib.error.URLError as erru:
