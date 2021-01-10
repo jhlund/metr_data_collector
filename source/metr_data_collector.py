@@ -21,11 +21,6 @@ def cli(ctx, debug):
     ctx.obj['DEBUG'] = debug
 
 
-def _died(msg, return_code=1):
-    print('ERROR: %s' % msg)
-    sys.exit(return_code)
-
-
 def verify_or_create_output(file_path, data):
     """
     Verifies that the output file exists or creates it.
@@ -34,13 +29,14 @@ def verify_or_create_output(file_path, data):
     :param file_path:
     :return:
     """
+    curr_time = time.asctime(time.localtime(time.time()))
     try:
         with open(file_path, 'x') as file:
             msg = ("%s ### Session initiated ###\n"
                    " Output path: %s\n"
                    " ID: %s\n"
                    " Endpoint: %s\n"
-                   " Interval: %s\n") % (time.asctime(time.localtime(time.time())),
+                   " Interval: %s\n") % (curr_time,
                                          file_path,
                                          data['id'],
                                          data['endpoint'],
@@ -51,7 +47,7 @@ def verify_or_create_output(file_path, data):
             msg = ("%s ### Session continued after restart ###\n"
                    " ID: %s\n"
                    " Endpoint: %s\n"
-                   " Interval: %s\n") % (time.asctime(time.localtime(time.time())),
+                   " Interval: %s\n") % (curr_time,
                                          data['id'],
                                          data['endpoint'],
                                          data['interval'])
@@ -102,11 +98,14 @@ def collect_data(config_path, output_path):
     :return:
     """
 
+    # open and read config file
     with open(config_path, 'r') as config_file:
         data = json.load(config_file)
         print("Config loaded: %s" % data)
 
+    # verify or create output file
     verify_or_create_output(output_path, data)
+
     # write string to an output file
     while True:
         _string = get_data(data['endpoint'])
