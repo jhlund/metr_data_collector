@@ -26,6 +26,38 @@ def _died(msg, return_code=1):
     sys.exit(return_code)
 
 
+def verify_or_create_output(file_path, data):
+    """
+    Verifies that the output file exists or creates it.
+    Writes a start-up msg in the log.
+
+    :param file_path:
+    :return:
+    """
+    try:
+        with open(file_path, 'x') as file:
+            msg = ("%s ### Session initiated ###\n"
+                   " Output path: %s\n"
+                   " ID: %s\n"
+                   " Endpoint: %s\n"
+                   " Interval: %s\n") % (time.asctime(time.localtime(time.time())),
+                                         file_path,
+                                         data['id'],
+                                         data['endpoint'],
+                                         data['interval'])
+            file.write(msg)
+    except FileExistsError:
+        with open(file_path, 'a') as file:
+            msg = ("%s ### Session continued after restart ###\n"
+                   " ID: %s\n"
+                   " Endpoint: %s\n"
+                   " Interval: %s\n") % (time.asctime(time.localtime(time.time())),
+                                         data['id'],
+                                         data['endpoint'],
+                                         data['interval'])
+            file.write(msg)
+
+
 def write_data(data_string, file_path):
     """
     Appends data in string format to a text file. Adds a date-time prefix.
@@ -42,16 +74,14 @@ def write_data(data_string, file_path):
 
 def get_data(url_path):
     """
+    Fetches the data located at the specified url and returns it as a string
 
     :param url_path:
     :return:
     """
-    # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
-    data = {}
     try:
         with urllib.request.urlopen(url_path) as _url:
             _string = _url.read().decode()
-            # raise urllib.error.HTTPError(url=url_path, code=500, msg="generated error", hdrs=None, fp=None)
     except ValueError as errv:
         _string = "ValueError caught: %s" % errv
     except urllib.error.URLError as erru:
@@ -65,33 +95,24 @@ def get_data(url_path):
 @click.option('-O', '--output_path', required=True, help='path to the output file')
 def collect_data(config_path, output_path):
     """
-    Develop a solution to obtain configuration data for an IoT device on boot
-
-    At metr we are running IoT devices similar to a raspberry pi with linux on it. One of the challenges we are facing is to make sure our IoT devices are downloading a set configuration settings on boot. The configuration settings are a simple set of key value pairs which are essential to a process running on the same device that needs to be started after obtaining the configuration settings. Let's call this process "data-collector". This data-collector process requires the information from the key value pairs to function correctly and it shouldn't be started without those settings.
-
-    We provide a public endpoint mocking the configuration server. If you are sending a request to http://82.165.112.45:4710/config/AC67DD you'll receive a response containing the configuration for your fictional IoT device. One thing you might notice is that the response isn't very stable. Sometimes the configuration service will give you a 500 or incomplete information. The correct response you are looking for has a HTTP Status of 200 with a payload looking like this:
-    { "id": "AC67DD", "endpoint": "http://numbersapi.com/random/trivia", "interval": 59 }
-    The data-collector process will use the endpoint value as an endpoint to connect to. And it will use the interval value to know in which interval it should query the endpoint.
-    Your task is to implement a solution that:
-
-        Makes sure the configuration is fetched right after boot and saved to a file
-        keeps in mind that the response from the config server might be unstable
-        makes sure the second process (the data-collector) only starts after the configuration file is updated
-
-    Remember that this should run in a headless linux system without any intervention (you can do it in a way that would run in a Raspberry Pi when you plug it into the power socket).
+    Fetches data from a location specified in a config file and outputs it in to a
+    txt document at specified location.
+    :param config_path:
+    :param output_path:
+    :return:
     """
 
     with open(config_path, 'r') as config_file:
         data = json.load(config_file)
         print("Config loaded: %s" % data)
 
+    verify_or_create_output(output_path, data)
     # write string to an output file
-    interval = data['interval']
     while True:
         _string = get_data(data['endpoint'])
         print(_string)
         write_data(_string, output_path)
-        time.sleep(interval)
+        time.sleep(data['interval'])
 
 
 if __name__ == '__main__':
